@@ -1,0 +1,19 @@
+{
+  "name": "sql-pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/core": "^0.3.43",
+    "@langchain/ollama": "^0.2.0",
+    "langchain": "^0.3.19",
+    "ollama": "^0.5.14",
+    "sqlite3": "^5.1.7"
+  }
+}

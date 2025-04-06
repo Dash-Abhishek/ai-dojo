@@ -1,0 +1,9 @@
+.vscode/
+secrets.txt
+/node_modules/
+package-lock.json
+*.zip
+*.tar.gz
+sqlite3
+sqlite-tools-osx-x64-3490100
+olist.sqlite
