@@ -1,9 +1,10 @@
-module structured-output
+module llmdojo
 
 go 1.23.0
 
 require (
 	github.com/invopop/jsonschema v0.13.0
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/mattn/go-sqlite3 v1.14.27
 	github.com/openai/openai-go v0.1.0-beta.3
 )

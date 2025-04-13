@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	structuredoutput "llmdojo"
 	"log"
-	"sync"
-	"time"
 
 	"database/sql"
 
@@ -15,9 +13,6 @@ import (
 	"github.com/openai/openai-go"
 )
 
-var client openai.Client
-var clientOnce sync.Once
-
 type Step struct {
 	Explanation string `json:"explanation"`
 	// Output      string `json:"output"`
@@ -25,9 +20,6 @@ type Step struct {
 type AgentResponseFormat struct {
 	Steps       []Step `json:"steps"`
 	FinalOutput string `json:"finalOutput"`
-}
-type ModelResp struct {
-	Content string `json:"content"`
 }
 
 var respSchema = openai.ResponseFormatJSONSchemaJSONSchemaParam{
@@ -46,79 +38,6 @@ func GenerateSchema[T any]() interface{} {
 	var v T
 	schema := reflector.Reflect(v)
 	return schema
-}
-
-func getClient() openai.Client {
-
-	clientOnce.Do(func() {
-		client = openai.NewClient()
-	})
-	return client
-}
-
-type ChatContext struct {
-	Id     int
-	Memory Memory
-}
-
-type Memory struct {
-	Messages []openai.ChatCompletionMessageParamUnion
-}
-
-func NewChatContext(id int) ChatContext {
-	return ChatContext{
-		Id: id,
-		Memory: Memory{
-			Messages: []openai.ChatCompletionMessageParamUnion{},
-		},
-	}
-}
-
-func (c *ChatContext) AddMessage(message openai.ChatCompletionMessageParamUnion) {
-	c.Memory.Messages = append(c.Memory.Messages, message)
-}
-
-func (c *ChatContext) ViewConversation() {
-	for _, msg := range c.Memory.Messages {
-		if msg.OfAssistant != nil {
-			fmt.Println("Assistant:", msg.OfAssistant.Content.OfString)
-		}
-		if msg.OfUser != nil {
-			fmt.Println("User:", msg.OfUser.Content.OfString)
-		}
-		if msg.OfSystem != nil {
-			fmt.Println("System:", msg.OfSystem.Content.OfString)
-		}
-		if msg.OfFunction != nil {
-			fmt.Println("Function:", msg.OfFunction.Name)
-		}
-	}
-}
-
-func (c *ChatContext) GenerateResponseFromModel() (string, error) {
-	client := getClient()
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-
-	resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Model:    openai.ChatModelGPT4o,
-		Messages: c.Memory.Messages,
-		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
-			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{JSONSchema: respSchema},
-		},
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	c.AddMessage(openai.ChatCompletionMessageParamUnion{
-		OfAssistant: &openai.ChatCompletionAssistantMessageParam{
-			Content: openai.ChatCompletionAssistantMessageParamContentUnion{
-				OfString: openai.String(resp.Choices[0].Message.Content),
-			},
-		}})
-	return resp.Choices[0].Message.RawJSON(), nil
-
 }
 
 const initialContext = `You are an expert in Databases SQLite, Python and data analysis.
@@ -250,7 +169,7 @@ func main() {
 	failedgenerations := 0
 	for caseId, testCase := range testCases {
 
-		conv := NewChatContext(caseId)
+		conv := structuredoutput.NewChatContext(caseId)
 
 		// Add system message to the conversation
 		// This message is used to set the context for the conversation
@@ -294,12 +213,12 @@ func main() {
 		// Uncomment this line to view the conversation
 		// conv.ViewConversation()
 
-		resp, err := conv.GenerateResponseFromModel()
+		resp, err := conv.GenerateResponseFromModel(respSchema)
 		if err != nil {
 			log.Printf("Error generating response: %v", err)
 			continue
 		}
-		var response ModelResp
+		var response structuredoutput.ModelResp
 		if err := json.Unmarshal([]byte(resp), &response); err != nil {
 			log.Printf("Error unmarshalling response: %v", err)
 			continue
