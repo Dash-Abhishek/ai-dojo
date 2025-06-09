@@ -1,0 +1,7 @@
+dotenv
+openai
+openai-agents
+asyncio
+FastMCP
+pydantic
+PyPDF2

@@ -110,7 +110,7 @@ func TestResumeFeatureExtraction(t *testing.T) {
 			eval.AccuracyScore--
 		}
 
-		fmt.Printf("eval %d Accuracy Score: %d\n", id, eval.AccuracyScore)
+		fmt.Printf("eval %d Accuracy Score: %d/8\n", id, eval.AccuracyScore)
 	}
 
 }

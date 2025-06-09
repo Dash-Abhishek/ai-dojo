@@ -74,6 +74,7 @@ func (c *ChatContext) GenerateResponseFromModel(respSchema shared.ResponseFormat
 		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
 			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{JSONSchema: respSchema},
 		},
+		Temperature: openai.Float(0.0),
 	})
 
 	if err != nil {
